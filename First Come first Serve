@@ -1,0 +1,125 @@
+#include <stdio.h>
+#define MAX_PROCESSES 10
+
+// Structure to represent a process
+struct Process {
+    int process_id;
+    int arrival_time;
+    int burst_time;
+    int completion_time;
+    int waiting_time;
+    int turnaround_time;
+    int response_time;
+};
+
+// Function to calculate waiting time, turnaround time, completion time, and response time for FCFS
+void fcfs(struct Process processes[], int n) {
+    int current_time = 0;
+
+    // Sort processes by arrival time
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (processes[j].arrival_time > processes[j + 1].arrival_time) {
+                struct Process temp = processes[j];
+                processes[j] = processes[j + 1];
+                processes[j + 1] = temp;
+            }
+        }
+    }
+
+    // Calculate completion time, waiting time, turnaround time, and response time for each process
+    for (int i = 0; i < n; i++) {
+        if (processes[i].arrival_time > current_time) {
+            current_time = processes[i].arrival_time;
+        }
+        processes[i].response_time = current_time - processes[i].arrival_time;
+        processes[i].completion_time = current_time + processes[i].burst_time;
+        processes[i].turnaround_time = processes[i].completion_time - processes[i].arrival_time;
+        processes[i].waiting_time = processes[i].turnaround_time - processes[i].burst_time;
+        current_time = processes[i].completion_time;
+    }
+
+    // Calculate average waiting time, turnaround time, completion time, and response time
+    float total_waiting_time = 0;
+    float total_turnaround_time = 0;
+    float total_completion_time = 0;
+    float total_response_time = 0;
+
+    for (int i = 0; i < n; i++) {
+        total_waiting_time += processes[i].waiting_time;
+        total_turnaround_time += processes[i].turnaround_time;
+        total_completion_time += processes[i].completion_time;
+        total_response_time += processes[i].response_time;
+    }
+
+    float avg_waiting_time = total_waiting_time / n;
+    float avg_turnaround_time = total_turnaround_time / n;
+    float avg_completion_time = total_completion_time / n;
+    float avg_response_time = total_response_time / n;
+
+    // Display results
+    printf("\nProcess\tArrival Time\tBurst Time\tCompletion Time\tTurnaround Time\tWaiting Time\tResponse Time\n");
+    for (int i = 0; i < n; i++) {
+        printf("P%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t\t%d\t\t\t%d\n",
+               processes[i].process_id, processes[i].arrival_time, processes[i].burst_time,
+               processes[i].completion_time, processes[i].turnaround_time,
+               processes[i].waiting_time, processes[i].response_time);
+    }
+
+    printf("\nAverage Waiting Time: %.2f\n", avg_waiting_time);
+    printf("Average Turnaround Time: %.2f\n", avg_turnaround_time);
+    printf("Average Completion Time: %.2f\n", avg_completion_time);
+    printf("Average Response Time: %.2f\n", avg_response_time);
+
+    // Display Gantt Chart
+    printf("\nGantt Chart:\n");
+    printf(" |");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < processes[i].burst_time; j++) {
+            printf(" ");
+        }
+        printf("P%d", processes[i].process_id);
+        for (int j = 0; j < processes[i].burst_time; j++) {
+            printf(" ");
+        }
+        printf("|");
+    }
+    printf("\n0");
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < processes[i].burst_time; j++) {
+            printf(" ");
+        }
+        printf("%d", processes[i].completion_time);
+        for (int j = 0; j < processes[i].burst_time; j++) {
+            printf(" ");
+        }
+    }
+    printf("\n");
+}
+
+int main() {
+    int n;
+    struct Process processes[MAX_PROCESSES];
+
+    // Input number of processes
+    printf("Enter the number of processes (max %d): ", MAX_PROCESSES);
+    scanf("%d", &n);
+
+    if (n <= 0 || n > MAX_PROCESSES) {
+        printf("Invalid number of processes.\n");
+        return 1; // Return non-zero value to indicate error
+    }
+
+    // Input arrival time and burst time for each process
+    printf("Enter arrival time and burst time for each process (separated by spaces):\n");
+    for (int i = 0; i < n; i++) {
+        processes[i].process_id = i + 1;
+        printf("Process %d: ", i + 1);
+        scanf("%d %d", &processes[i].arrival_time, &processes[i].burst_time);
+    }
+
+    // Call FCFS scheduling function
+    fcfs(processes, n);
+
+    return 0;
+}
